@@ -6,8 +6,8 @@ import (
 	"net/http"
 )
 
-func RegisterRoutes(r mux.Route, svc Service) {
-	r.HandlerFunc("/ads", createAdHandler(svc)).Methods(http.MethodPost)
+func RegisterRoutes(r *mux.Router, svc *Service) {
+	r.HandleFunc("/ads", createAdHandler(svc)).Methods(http.MethodPost)
 	//TODO: Register other routes
 }
 
@@ -25,6 +25,8 @@ func createAdHandler(svc *Service) http.HandlerFunc {
 			return
 		}
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(newAd)
+		if err := json.NewEncoder(w).Encode(newAd); err != nil {
+			http.Error(w, "Failed to encode ad", http.StatusInternalServerError)
+		}
 	}
 }

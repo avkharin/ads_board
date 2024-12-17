@@ -13,14 +13,14 @@ func RegisterRoutes(r *mux.Router, svc *Service) {
 }
 func getAllAdsHandler(svc *Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ads, err := svc.GetALlAds()
+		ads, err := svc.GetAllAds()
 		if err != nil {
-			http.Error(w, "Faled reading ads", http.StatusInternalServerError)
+			http.Error(w, "Failed reading ads", http.StatusInternalServerError)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
 		if err := json.NewEncoder(w).Encode(ads); err != nil {
-			http.Error(w, "Faled to encode ads", http.StatusInternalServerError)
+			http.Error(w, "Failed to encode ads", http.StatusInternalServerError)
 		}
 	}
 }

@@ -7,8 +7,22 @@ import (
 )
 
 func RegisterRoutes(r *mux.Router, svc *Service) {
-	r.HandleFunc("/ads", createAdHandler(svc)).Methods(http.MethodPost)
+	r.HandleFunc("/ad", createAdHandler(svc)).Methods(http.MethodPost)
+	r.HandleFunc("/ads", getAllAdsHandler(svc)).Methods(http.MethodGet)
 	//TODO: Register other routes
+}
+func getAllAdsHandler(svc *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ads, err := svc.GetALlAds()
+		if err != nil {
+			http.Error(w, "Faled reading ads", http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(ads); err != nil {
+			http.Error(w, "Faled to encode ads", http.StatusInternalServerError)
+		}
+	}
 }
 
 func createAdHandler(svc *Service) http.HandlerFunc {

@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15
+    container_name: adsboard_db
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: adsboard
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - adsboard_network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: adsboard_app
+    environment:
+      DATABASE_URL: "postgres://test_user:test_password@db:5432/adsboard?sslmode=disable"
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+    networks:
+      - adsboard_network
+
+  migrate:
+    image: migrate/migrate
+    container_name: adsboard_migrate
+    entrypoint: [
+      "/bin/sh", "-c",
+      "migrate -path /migrations -database 'postgres://test_user:test_password@db:5432/adsboard?sslmode=disable' up"
+    ]
+    depends_on:
+      - db
+    volumes:
+      - ./migrations:/migrations
+    networks:
+      - adsboard_network
+
+volumes:
+  db_data:
+
+networks:
+  adsboard_network:

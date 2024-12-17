@@ -3,6 +3,7 @@ package storage
 import (
 	"adsboard/internal/ads"
 	"database/sql"
+	_ "github.com/lib/pq"
 )
 
 type Postgres struct {

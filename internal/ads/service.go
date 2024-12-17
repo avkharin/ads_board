@@ -3,6 +3,7 @@ package ads
 type Storage interface {
 	CreateAd(title, description string, price float64) (int, error)
 	GetAllAd() ([]Ad, error)
+	UpdateAd(ad Ad) (bool, error)
 	// TODO: add other CRUD methods
 }
 
@@ -19,6 +20,10 @@ type Service struct {
 
 func NewService(store Storage) *Service {
 	return &Service{store: store}
+}
+
+func (s *Service) UpdateAd(ad Ad) (bool, error) {
+	return s.store.UpdateAd(ad)
 }
 
 func (s *Service) GetAllAds() ([]Ad, error) {

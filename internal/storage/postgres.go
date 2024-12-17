@@ -4,6 +4,7 @@ import (
 	"adsboard/internal/ads"
 	"database/sql"
 	_ "github.com/lib/pq"
+	"log"
 )
 
 type Postgres struct {
@@ -17,6 +18,29 @@ func NewPostgres(dsn string) (*Postgres, error) {
 	}
 	return &Postgres{db: db}, nil
 }
+
+func (p *Postgres) UpdateAd(ad ads.Ad) (bool, error) {
+	query := `
+			UPDATE ads 
+			SET title = $1, description = $2, price = $3
+			WHERE id = $4
+			`
+	result, err := p.db.Exec(query, ad.Title, ad.Description, ad.Price, ad.ID)
+	if err != nil {
+		log.Println("Failed to update Ad ID=%v", ad.ID)
+		return false, err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	if rowsAffected == 0 {
+		log.Println("No ad found with ID=%v", ad.ID)
+		return false, nil
+	}
+	return true, nil
+}
+
 func (p *Postgres) GetAllAd() ([]ads.Ad, error) {
 	query := `SELECT title, description, price FROM ads`
 	rows, err := p.db.Query(query)

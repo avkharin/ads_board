@@ -19,6 +19,31 @@ func NewPostgres(dsn string) (*Postgres, error) {
 	return &Postgres{db: db}, nil
 }
 
+func (p *Postgres) CreateAd(title, description string, price float64) (int, error) {
+	query := `INSERT INTO ads (title, description, price) VALUES ($1, $2, $3) RETURNING id`
+	var id int
+	if err := p.db.QueryRow(query, title, description, price).Scan(&id); err != nil {
+		return 0, err
+	}
+	return id, nil
+}
+
+func (p *Postgres) GetAd(id int) (*ads.Ad, error) {
+	query := `SELECT id, title, description, price FROM ads WHERE id = $1`
+	rows, err := p.db.Query(query, id)
+	if err != nil {
+		return nil, err
+	}
+	if !rows.Next() {
+		return nil, nil
+	}
+	var ad ads.Ad
+	if err := rows.Scan(&ad.ID, &ad.Title, &ad.Description, &ad.Price); err != nil {
+		return nil, err
+	}
+	return ad, nil
+}
+
 func (p *Postgres) UpdateAd(ad ads.Ad) (bool, error) {
 	query := `
 			UPDATE ads 
@@ -42,7 +67,7 @@ func (p *Postgres) UpdateAd(ad ads.Ad) (bool, error) {
 }
 
 func (p *Postgres) GetAllAd() ([]ads.Ad, error) {
-	query := `SELECT title, description, price FROM ads`
+	query := `SELECT id, title, description, price FROM ads`
 	rows, err := p.db.Query(query)
 	if err != nil {
 		return nil, err
@@ -52,7 +77,7 @@ func (p *Postgres) GetAllAd() ([]ads.Ad, error) {
 
 	for rows.Next() {
 		var ad ads.Ad
-		if err := rows.Scan(&ad.Title, &ad.Description, &ad.Price); err != nil {
+		if err := rows.Scan(&ad.ID, &ad.Title, &ad.Description, &ad.Price); err != nil {
 			return nil, err
 		}
 		adverts = append(adverts, ad)
@@ -62,15 +87,6 @@ func (p *Postgres) GetAllAd() ([]ads.Ad, error) {
 	}
 
 	return adverts, nil
-}
-
-func (p *Postgres) CreateAd(title, description string, price float64) (int, error) {
-	query := `INSERT INTO ads (title, description, price) VALUES ($1, $2, $3) RETURNING id`
-	var id int
-	if err := p.db.QueryRow(query, title, description, price).Scan(&id); err != nil {
-		return 0, err
-	}
-	return id, nil
 }
 
 // Ensure Postgres implements the Storage interface
